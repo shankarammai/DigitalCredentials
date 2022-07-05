@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "735468362583",
+    "project_id": "verifiablecredential-ddd53",
+    "storage_bucket": "verifiablecredential-ddd53.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:735468362583:android:a9aaaa450b2a8a0d297c12",
+        "android_client_info": {
+          "package_name": "com.example.verifiable_credentials"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "735468362583-hqfr39n5vbgnoqb9g49pujhnhhu322s1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBG9RmR18CmD9kpNwCFWEluyf0hOkHYAkM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "735468362583-hqfr39n5vbgnoqb9g49pujhnhhu322s1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
