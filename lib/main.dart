@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'Dashboard.dart';
+import 'ChooseIssuer.dart';
+import 'DashboardStructure.dart';
 import 'Register.dart';
 import 'package:flutter/foundation.dart';
 import 'services/secure_storage.dart';
 import 'dart:developer' as developer;
+import 'package:firebase_core/firebase_core.dart';
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -23,7 +29,8 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/register': (BuildContext context) => Register(),
-        '/dashboard': (BuildContext context) => Dashboard(),
+        '/dashboard': (BuildContext context) => DashboardStructure(),
+        'chooseIssuer': (BuildContext context) => ChooseIssuer(),
       },
       home: MyStatefulWidget(),
     );
@@ -37,8 +44,6 @@ class MyStatefulWidget extends StatefulWidget {
 }
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
-  int _count = 0;
-  String _title = "Verifiable Credential";
   bool _isRegistered = false;
 
   // Create storage
@@ -55,7 +60,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
             name: 'Main File');
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else {
-                developer.log('isRegistered: ' + _isRegistered.toString(),
+        developer.log('isRegistered: ' + _isRegistered.toString(),
             name: 'Main File');
         Navigator.pushReplacementNamed(context, '/register');
       }

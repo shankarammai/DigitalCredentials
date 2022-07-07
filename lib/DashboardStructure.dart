@@ -7,64 +7,22 @@ import 'Activity.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'ChooseIssuer.dart';
+import 'Dashboard.dart';
 
-class DashboardPage extends StatefulWidget {
-  DashboardPage({Key? key}) : super(key: key);
+
+class DashboardStructure extends StatefulWidget {
+  const DashboardStructure({Key? key}) : super(key: key);
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
+  State<DashboardStructure> createState() => _DashboardStructureState();
 }
 
-class _DashboardPageState extends State<DashboardPage>
-    with AutomaticKeepAliveClientMixin {
-  String privateKeyPEM = "";
-  String publicKeyPEM = "";
-  String Uuid = "";
-  final SecureStorage secureStorage = SecureStorage();
-
-  @override
-  void initState() {
-    secureStorage.readSecureData("publicKeyPEM").then((value) {
-      publicKeyPEM = value.toString();
-    });
-    secureStorage.readSecureData("privateKeyPEM").then((value) {
-      privateKeyPEM = value.toString();
-    });
-    secureStorage.readSecureData("Uuid").then((value) {
-      Uuid = value.toString();
-    });
-    print("Dashboard ");
-    print(publicKeyPEM);
-    print(Uuid);
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    return Scaffold(
-        appBar: AppBar(title: Text('Dashboard')),
-        body: Center(child: Text('Dashboard')));
-  }
-
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
-}
-
-class Dashboard extends StatefulWidget {
-  const Dashboard({Key? key}) : super(key: key);
-
-  @override
-  State<Dashboard> createState() => _DashboardState();
-}
-
-class _DashboardState extends State<Dashboard> {
+class _DashboardStructureState extends State<DashboardStructure> {
   int _selectedIndex = 0;
   final SecureStorage secureStorage = SecureStorage();
 
   PageController _pageController = PageController();
-  List<Widget> _screens = [DashboardPage(), Activity()];
+  List<Widget> _screens = [Dashboard(), Activity()];
 
   void _onItemTapped(int index) {
     _pageController.jumpToPage(index);
@@ -107,21 +65,9 @@ class _DashboardState extends State<Dashboard> {
           shape: const CircleBorder(), //shape of button
 
           children: [
+
             SpeedDialChild(
-              //speed dial child
-              child: Icon(Icons.add),
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              label: 'Add ID',
-              labelStyle: const TextStyle(fontSize: 18.0, color: Colors.white),
-              onTap: () {
-                print('Add Id Document');
-                Navigator.push(context, MaterialPageRoute(builder: (context)=>ChooseIssuer()));
-              },
-              onLongPress: () => print('FIRST CHILD LONG PRESS'),
-            ),
-            SpeedDialChild(
-              child: const Icon(Icons.camera_alt_outlined),
+              child: const Icon(Icons.qr_code_scanner),
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
               label: 'Verify Document',
@@ -132,16 +78,17 @@ class _DashboardState extends State<Dashboard> {
               onLongPress: () => print('SECOND CHILD LONG PRESS'),
             ),
             SpeedDialChild(
-              child: const Icon(Icons.keyboard_voice),
+              //speed dial child
+              child: const Icon(Icons.add),
+              backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              backgroundColor: Colors.green,
-              label: 'Third Menu Child',
+              label: 'Add ID',
               labelStyle: const TextStyle(fontSize: 18.0, color: Colors.white),
               onTap: () {
-                print('THIRD CHILD');
+                print('Add Id Document');
                 Navigator.push(context, MaterialPageRoute(builder: (context)=>ChooseIssuer()));
               },
-              onLongPress: () => print('THIRD CHILD LONG PRESS'),
+              onLongPress: () => print('FIRST CHILD LONG PRESS'),
             ),
 
             //add more menu item children here

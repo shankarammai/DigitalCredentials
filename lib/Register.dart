@@ -23,55 +23,18 @@ class _RegisterState extends State<Register> {
   bool progressLoading = false;
   bool generateClicked = false;
   TextEditingController _controller = new TextEditingController(text: '');
-  var privateKeyPEM, publicKeyPEM, UUID;
+  var privateKeyPEM, publicKeyPEM, UUIDNumber;
   final SecureStorage secureStorage = SecureStorage();
 
-  void _writeJson(String key, dynamic value, dynamic fileSavePath) async {
-    developer.log('path: ' +fileSavePath ,
-        name: 'Register File');
-    File filepath=File(fileSavePath);
-    Map<String, dynamic> _json = {};
-    String _jsonString;
-    // Initialize the local _filePath
-    //final _filePath = await _localFile;
-
-    Map<String, dynamic> _newJson = {key: value};
-    print('1.(_writeJson) _newJson: $_newJson');
-
-    //2. Update _json by adding _newJson<Map> -> _json<Map>
-    _json.addAll(_newJson);
-    print('2.(_writeJson) _json(updated): $_json');
-
-    //3. Convert _json ->_jsonString
-    _jsonString = jsonEncode(_json);
-    print('3.(_writeJson) _jsonString: $_jsonString\n - \n');
-
-    //4. Write _jsonString to the _filePath
-    filepath.writeAsString(_jsonString);
-  }
-
-  void _save_config_locally() {
-    secureStorage
-        .containsKeyInSecureData("registered")
-        .then((value) => print(value));
-
-    print('downloaded key locally');
-    writeToFile('this is test file', 'VC_config_file.txt');
-
-    // Future<String> myfilepath = getFilePath('VC_config_file');
-    // myfilepath.then((filelocation) {
-    //   _writeJson("Uuid", Uuid, filelocation);
-    //   _writeJson("privateKeyPEM", privateKeyPEM, filelocation);
-    //   _writeJson("publicKeyPEM", publicKeyPEM, filelocation);
-    // });
-
-    // var configDetails = {
-    //   "Uuid": Uuid,
-    //   "privateKeyPEM": privateKeyPEM,
-    //   "publicKeyPEM": publicKeyPEM
-    // };
-    // dynamic configDetailsString = jsonEncode(configDetails);
-    // myfilepath.writeAsString(configDetailsString);
+  void _save_config_to_file(
+      [String saveLocation = "VerifiableCredentails_config.json"]) {
+    var configDetails = {
+      "Uuid": UUIDNumber,
+      "privateKeyPEM": privateKeyPEM,
+      "publicKeyPEM": publicKeyPEM
+    };
+    dynamic configDetailsString = jsonEncode(configDetails);
+    writeToFile(configDetailsString, saveLocation);
     print('saving file locally done');
   }
 
@@ -81,14 +44,17 @@ class _RegisterState extends State<Register> {
     final writeprivate = secureStorage
         .writeSecureData(StorageItem('privateKeyPEM', privateKeyPEM));
     final writepublic = secureStorage
-        .writeSecureData(StorageItem('privateKeyPEM', publicKeyPEM));
+        .writeSecureData(StorageItem('publicKeyPEM', publicKeyPEM));
     final UUID = Uuid();
-    var uuid = UUID.v4(); //UUID.v5('publicKeyPEM', publicKeyPEM);
-    final writeuuid = secureStorage.writeSecureData(StorageItem('Uuid', uuid));
+    UUIDNumber = UUID.v4(); //UUID.v5('publicKeyPEM', publicKeyPEM);
+    final writeuuid =
+        secureStorage.writeSecureData(StorageItem('Uuid', UUIDNumber));
     Future.wait([writeprivate, writepublic, writeuuid]).then((value) => {
           secureStorage
               .writeSecureData(StorageItem('registered', 'true'))
-              .then((value) => {print('config saved in secure storage')})
+              .then((value) {
+            print('config saved in secure storage');
+          })
         });
   }
 
@@ -105,8 +71,6 @@ class _RegisterState extends State<Register> {
     _controller.text = privateKeyPEM;
     //Key Generation Completed
     print("Key done!!");
-    _save_config();
-    print("Saving Config done!!");
     return [publicKeyPEM, privateKeyPEM];
   }
 
@@ -130,22 +94,24 @@ class _RegisterState extends State<Register> {
                     style: ElevatedButton.styleFrom(
                         primary: Colors.lightBlue.shade400,
                         minimumSize: Size.fromHeight(50)),
-                    child: const Text(
-                      'Generate Keys',
-                      style: TextStyle(fontSize: 24),
-                    ), // <-- Text
+                    child:const Text(
+                            'Generate Keys',
+                            style: TextStyle(fontSize: 24),
+                          ), // <-- Text
                     onPressed: () async {
                       setState(() {
                         progressLoading = true;
                         generateClicked = true;
                       });
                       final generateKey = _generate_keys();
-                      generateKey.then((value) => {
-                            setState(() {
-                              progressLoading = false;
-                              showDownloadOptions = true;
-                            })
-                          });
+                      generateKey.then((value) {
+                        _save_config();
+                        _save_config_to_file();
+                        setState(() {
+                          progressLoading = false;
+                          showDownloadOptions = true;
+                        });
+                      });
                     },
                   ),
                   Padding(
@@ -196,7 +162,9 @@ class _RegisterState extends State<Register> {
                                       ),
                                       backgroundColor: Colors.blueGrey,
                                       onPressed: () {
-                                        _save_config_locally();
+                                        //Todo: Save to downloads folder
+                                        _save_config_to_file(
+                                            "VerifiableCredentails_config_backup.json");
                                         var snackBar = SnackBar(
                                             content: Text('Config Saved'));
                                         ScaffoldMessenger.of(context)
@@ -215,7 +183,8 @@ class _RegisterState extends State<Register> {
                                   style: TextStyle(fontSize: 24),
                                 ), // <-- Text
                                 onPressed: () {
-                                  Navigator.pushNamed(context, '/dashboard');
+                                  Navigator.pushReplacementNamed(
+                                      context, '/dashboard');
                                 },
                               ),
                             ),
