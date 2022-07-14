@@ -7,6 +7,7 @@ import 'Activity.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'ChooseIssuer.dart';
+import 'widgets/CustomWidget.dart';
 
 class Dashboard extends StatefulWidget {
   Dashboard({Key? key}) : super(key: key);
@@ -44,7 +45,21 @@ class _DashboardState extends State<Dashboard>
     super.build(context);
     return Scaffold(
         appBar: AppBar(title: Text('Dashboard')),
-        body: Center(child: Text('Dashboard')));
+        body: Column(
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height * 0.50,
+              child: ListWheelScrollView(
+                  itemExtent: 150,
+                  physics: FixedExtentScrollPhysics(),
+                  children: <Widget>[
+                    ElevatedCard(),
+                    ElevatedCard(),
+                    ElevatedCard(),
+                  ]),
+            )
+          ],
+        ));
   }
 
   @override

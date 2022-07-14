@@ -1,8 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:verifiable_credentials/services/secure_storage.dart';
+
+
+
+
+
 
 class ChooseIDDocuments extends StatefulWidget {
   final String issuerName;
@@ -27,8 +35,21 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
   final String issuerPublicKeyPEM;
   final String documentAPI;
   bool isSending = false;
-  List files = [];
+  List<File> files = [];
   File? image;
+  var holderPublicKeyPEM, holderUuid;
+  final SecureStorage secureStorage = SecureStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    secureStorage.readSecureData("publicKeyPEM").then((value) {
+      holderPublicKeyPEM = value.toString();
+    });
+    secureStorage.readSecureData("Uuid").then((value) {
+      holderUuid = value.toString();
+    });
+  }
 
   _ChooseIDDocumentsState(
       this.documentAPI, this.issuerName, this.issuerPublicKeyPEM);
@@ -51,6 +72,62 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
       files.add(imagepath);
     });
     print(files);
+  }
+
+  _send_documents() async {
+    var request =new http.MultipartRequest("POST", Uri.parse(this.documentAPI));
+    request.fields['holderPublicKeyPEM'] = this.holderPublicKeyPEM;
+    request.fields['holderUuid'] = this.holderUuid;
+    request.fields['totalFiles'] = files.length.toString();
+    request.fields['returnAPI'] = 'this Will be the return API for credentials';
+    Map<String, String> headers = {"Content-type": "multipart/form-data"};
+
+    ///Adding all the image files
+    for( var i = 0 ; i < files.length; i++ ) {
+      File file=files[0];
+      http.MultipartFile multipartFile= await http.MultipartFile.fromPath('file'+i.toString(),file.path);
+      request.files.add(multipartFile);
+    }
+    request.headers.addAll(headers);
+
+    try {
+      var response = request.send();
+      print("Request Sent!");
+      response.then((response) async {
+        final responseString=await response.stream.bytesToString();
+        print(responseString);
+        if (response.statusCode == 200){
+          // final decodedResponse= jsonDecode(responseString);
+          showDialog(
+              context: context,
+              builder: (_) => const AlertDialog(
+                title: Text('Request Sent'),
+                content: Icon(Icons.verified_sharp,color: Colors.greenAccent),
+              ));
+          setState(() {
+            isSending = false;
+          });
+        }
+        else{
+          print('error response');
+          setState(() {
+            isSending = false;
+          });
+          showDialog(
+              context: context,
+              builder: (_) => const AlertDialog(
+                title: Text('Error'),
+                content: Icon(Icons.error_outlined,color: Colors.redAccent),
+              ));
+        }
+
+      });
+    } catch (err) {
+      print(err);
+      setState(() {
+        isSending = false;
+      });
+    }
   }
 
   @override
@@ -87,11 +164,12 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
               spacing: 2.0, // gap between adjacent chips
               runSpacing: 5.0, // gap between lines
               children: files.map((filepath) {
-                return Image.file(
+                return InteractiveViewer(
+                    child: Image.file(
                   filepath,
                   height: 150,
                   width: 150,
-                );
+                ));
               }).toList(),
             ),
             SizedBox(height: 10),
@@ -109,20 +187,19 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
                         ])
                   : const Text('Send Document'),
               onPressed: () {
-                if(files.length<1){
+                if (files.length < 1) {
                   showDialog(
                       context: context,
                       builder: (_) => AlertDialog(
-                        title: Text('No Files Selected'),
-                        content: Text('Please Select files to send'),
-                      )
-                  );
+                            title: Text('No Files Selected'),
+                            content: Text('Please Select files to send'),
+                          ));
                   return;
                 }
-
                 setState(() {
                   isSending = true;
                 });
+                _send_documents();
 
               },
             )
