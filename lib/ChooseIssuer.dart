@@ -53,7 +53,7 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Choose Issuer'),
+        title: const Text('Choose Issuer'),
         centerTitle: true,
       ),
       body: ListView(
@@ -108,15 +108,13 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
                   if(issuerNameController.text=='' && issuerAPIController.text=='' && issuerPublicKeyPEMController.text==''){
                     showDialog(
                         context: context,
-                        builder: (_) => AlertDialog(
+                        builder: (_) => const AlertDialog(
                           title: Text('Empty Fileds  '),
                           content: Text('All fields should be filled'),
                         )
                     );
                     return;
                   }
-
-
                   Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -125,7 +123,8 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
                                 issuerPublicKeyPEM:
                                     issuerPublicKeyPEMController.text,
                                 documentAPI: issuerAPIController.text,
-                              )));
+                              ))
+                  );
                 },
                 child: const Text('Continue'),
               ),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:verifiable_credentials/VerifyCredential.dart';
 import 'services/secure_storage.dart';
 import 'dart:developer' as developer;
 import 'Activity.dart';
@@ -73,7 +74,9 @@ class _DashboardStructureState extends State<DashboardStructure> {
               label: 'Verify Document',
               labelStyle: const TextStyle(fontSize: 18.0, color: Colors.white),
               onTap: () {
-                print('SECOND CHILD');
+                print('Verify  Document');
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => VerifyCredential()));
               },
               onLongPress: () => print('SECOND CHILD LONG PRESS'),
             ),

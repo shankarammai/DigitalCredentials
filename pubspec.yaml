@@ -42,6 +42,9 @@ dependencies:
   image_picker: ^0.8.5+3
   http: ^0.13.4
   http_parser: ^4.0.1
+  barcode_widget: ^2.0.2
+  flutter_barcode_scanner: ^2.0.0-nullsafety.0
+  encrypt: ^5.0.1
 
 
   # The following adds the Cupertino Icons font to your application.

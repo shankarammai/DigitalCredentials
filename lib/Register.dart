@@ -1,5 +1,7 @@
+import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:pointycastle/asymmetric/api.dart';
+import 'package:pointycastle/ecc/api.dart';
 import 'services/key_generatation.dart';
 import 'dart:io';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -71,6 +73,7 @@ class _RegisterState extends State<Register> {
     _controller.text = privateKeyPEM;
     //Key Generation Completed
     print("Key done!!");
+    // Key Generation Completed
     return [publicKeyPEM, privateKeyPEM];
   }
 
