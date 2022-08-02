@@ -2,18 +2,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:pointycastle/asymmetric/api.dart';
-import 'package:uuid/uuid.dart';
-import 'services/secure_storage.dart';
-import 'dart:developer' as developer;
-import 'Activity.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'ChooseIssuer.dart';
-import 'widgets/CustomWidget.dart';
-// import 'package:barcode_widget/barcode_widget.dart';
-// import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:encrypt/encrypt.dart' as cryptolib;
 import 'package:cool_alert/cool_alert.dart';
@@ -26,7 +15,7 @@ class VerifyCredential extends StatefulWidget {
 }
 
 class _VerifyCredentialState extends State<VerifyCredential> {
-  String scanBarcode = 'Unknown';
+  String scanBarcode = '';
   QRViewController? controller;
   Barcode? result;
   bool showCamera = true;
@@ -35,7 +24,7 @@ class _VerifyCredentialState extends State<VerifyCredential> {
   late Map credentialDoc;
   String? decryptionKey;
   String? presentedCredentialData;
-  List<Widget> documentWidgets = [Text('data')];
+  List<Widget> documentWidgets = [];
 
   void scanQR(QRViewController controller) {
     this.controller = controller;
@@ -48,6 +37,7 @@ class _VerifyCredentialState extends State<VerifyCredential> {
           //get the id and key
           String documentId = jsonQR['documentId'];
           decryptionKey = (jsonQR['decryptionKey']);
+          String QRtype = jsonQR['QRtype'];
           print('Document Id >>>>>>>>>>>>>>' + documentId);
           //get data from service provider
           Future<DocumentSnapshot<Map<String, dynamic>>> document =
@@ -74,7 +64,8 @@ class _VerifyCredentialState extends State<VerifyCredential> {
               //Make widget to show the credentails
               Map<String, dynamic> credentialDataJson =
                   json.decode(presentedCredentialData!);
-              documentWidgets=[];
+              documentWidgets = [];
+
               credentialDataJson.forEach((key, value) {
                 documentWidgets
                     .add(Divider(height: 30.0, color: Colors.grey[800]));
@@ -97,54 +88,61 @@ class _VerifyCredentialState extends State<VerifyCredential> {
                     fontWeight: FontWeight.bold,
                   ),
                 ));
-                print(documentWidgets);
-                print(key);
               });
-              documentWidgets.add(ElevatedButton(
-                child: const Text('Verify Document'),
-                onPressed: () {
+              documentWidgets.add(
+                ElevatedButton(
+                  child: const Text('Verify Document'),
+                  onPressed: () {
 
-                  var verifierPublicKey =
-                  cryptolib.RSAKeyParser().parse(credentialDoc['issuer']['publicKey']) as RSAPublicKey;
-                  var signer=cryptolib.Signer(cryptolib.RSASigner(cryptolib.RSASignDigest.SHA256,publicKey: verifierPublicKey));
-                  bool signResult=signer.verify64(presentedCredentialData!, credentialDoc['proof']['proofValue']);
-                  print(credentialDoc['proof']['proofValue']);
-                  print("Signature Result >> " + signResult.toString());
+                    var verifierPublicKey = cryptolib.RSAKeyParser()
+                            .parse(credentialDoc['issuer']['publicKey'])
+                        as RSAPublicKey;
+                    var signer = cryptolib.Signer(cryptolib.RSASigner(
+                        cryptolib.RSASignDigest.SHA256,
+                        publicKey: verifierPublicKey));
+                    bool signResult=false;
+                    if(QRtype=='full') {
+                      signResult = signer.verify64(
+                          presentedCredentialData!,
+                          credentialDoc['proof']['proofValue']);
+                      print(credentialDoc['proof']['proofValue']);
+                      print("Signature Result >> " + signResult.toString());
+                    }
+                    if(QRtype=='individual') {
+                      signResult=true;
+                      Map<String,dynamic> proofs=Map.from(credentialDoc['credentialData']['selectiveFieldsproof']);
+                      proofs.forEach((key, value) {
+                        signResult = signResult && signer.verify64(
+                            credentialDataJson[key],
+                            value);
+                        print("Signature Result >> " + key  + " >" + signResult.toString());
+                      });
+                    }
 
-                  // showDialog(
-                  //     context: context,
-                  //     builder: (_) => const AlertDialog(
-                  //       title: Text('Verification'),
-                  //       content: Text('All fields should be filled'),
-                  //     )
-                  // );
-                  if(signResult){
-                  CoolAlert.show(
-                    context: context,
-                    animType:CoolAlertAnimType.rotate,
-                    title: "Verified",
-                    type: CoolAlertType.success,
-                    widget: Text('Issued by: '+ credentialDoc['issuer']['name']),
-                    //Retrive from Database to check whose public key is it
-                  );
-                  }
-                  else{
-                    CoolAlert.show(
-                      context: context,
-                      animType:CoolAlertAnimType.rotate,
-                      title: "Invalid",
-                      type: CoolAlertType.error,
-                      text: "Signature Not Valid",
-                    );
+                    if (signResult) {
+                      CoolAlert.show(
+                        context: context,
+                        animType: CoolAlertAnimType.rotate,
+                        title: "Verified",
+                        type: CoolAlertType.success,
+                        widget: Text(
+                            'Issued by: ' + credentialDoc['issuer']['name']),
+                        //Retrive from Database to check whose public key is it
+                      );
+                    } else {
+                      CoolAlert.show(
+                        context: context,
+                        animType: CoolAlertAnimType.rotate,
+                        title: "Invalid",
+                        type: CoolAlertType.error,
+                        text: "Signature Not Valid",
+                      );
+                    }
+                  },
+                ),
+              );
+              documentWidgets.add(SizedBox(height: 80));
 
-                  }
-
-
-
-
-                },
-              ),);
-              
               setState(() {});
             }
           });
@@ -159,7 +157,7 @@ class _VerifyCredentialState extends State<VerifyCredential> {
         }
         print(documentWidgets);
 
-        scanBarcode = "Done";
+        scanBarcode = "";
       });
     });
   }
@@ -192,6 +190,7 @@ class _VerifyCredentialState extends State<VerifyCredential> {
         onPressed: () {
           setState(() {
             showCamera = true;
+            documentWidgets = [];
           });
         },
         icon: Icon(
