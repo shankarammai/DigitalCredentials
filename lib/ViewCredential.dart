@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -14,6 +15,8 @@ import 'package:verifiable_credentials/services/file_read_write.dart';
 import 'package:verifiable_credentials/services/key_generatation.dart';
 import 'package:verifiable_credentials/services/secure_storage.dart';
 import 'dart:developer' as developer;
+import 'package:http/http.dart' as http;
+
 
 class ViewCredential extends StatefulWidget {
   final String credentailDocument;
@@ -100,7 +103,7 @@ class _ViewCredentialState extends State<ViewCredential> {
     });
   }
 
-  _show_selected_qr() {
+  _show_selected_qr() async {
 
     var sendData = credentialDocumentJson;
     //get all the fields then encrypt it
@@ -134,47 +137,52 @@ class _ViewCredentialState extends State<ViewCredential> {
     sendData.remove("credentialData");
     sendData['credentialData']=credentailDetails;
 
-
-
-
-
-    CollectionReference showCredentials =
-    FirebaseFirestore.instance.collection('ShowCredential');
-    showCredentials.add(sendData).then((value) => {
-      Navigator.of(context)
-          .push(MaterialPageRoute<Null>(builder: (BuildContext context) {
-        /*
+    var request =new http.MultipartRequest("POST", Uri.parse("https://shankarammai.com.np/VerifiableCredentials/public/api/saveShowCredential"));
+    request.fields['data'] = json.encode(sendData);
+    request.headers.addAll( {"Content-type": "multipart/form-data"});
+    var response = request.send();
+    print("Request Sent!");
+    response.then((response) async {
+      final responseString=await response.stream.bytesToString();
+      print(responseString);
+      if (response.statusCode == 200) {
+        Map responseJson=json.decode(responseString);
+        Navigator.of(context)
+            .push(MaterialPageRoute<Null>(builder: (BuildContext context) {
+          /*
      * decryptionKey = key to decrypt the encrypted data
-     * documentId = document ID firebase, or API key
+     * docLink = document ID firebase, or API key
      * QRtype= full => all credentail, individual => individual fields
      * */
-        Map<String, dynamic> dataForQR = {
-          'decryptionKey': verifierEnckey,
-          'documentId': value.id,
-          'QRtype': 'individual'
-        };
-        return AlertDialog(
-          title: Text('Scan this QR'),
-          content: Container(
-              height: MediaQuery.of(context).size.height / 2,
-              width: MediaQuery.of(context).size.width,
-              child: BarcodeWidget(
-                barcode: Barcode.qrCode(
-                    errorCorrectLevel: BarcodeQRCorrectionLevel
-                        .high), // Barcode type and settings
-                data: jsonEncode(dataForQR), // Content
-                width: 200,
-                height: 200,
-              )),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('DONE'),
-            ),
-          ],
-        );
-      }))
-    });
+          Map<String, dynamic> dataForQR = {
+            'decryptionKey': verifierEnckey,
+            'docLink': "https://shankarammai.com.np/VerifiableCredentials/public/api/showCredential/"+responseJson["docId"],
+            'QRtype': 'individual'
+          };
+          return AlertDialog(
+            title: Text('Scan this QR'),
+            content: Container(
+                height: MediaQuery.of(context).size.height / 2,
+                width: MediaQuery.of(context).size.width,
+                child: BarcodeWidget(
+                  barcode: Barcode.qrCode(
+                      errorCorrectLevel: BarcodeQRCorrectionLevel
+                          .high), // Barcode type and settings
+                  data: jsonEncode(dataForQR), // Content
+                  width: 200,
+                  height: 200,
+                )),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('DONE'),
+              ),
+            ],
+          );
+        }));
+      }
+      });
+
 
   }
 
@@ -198,9 +206,16 @@ class _ViewCredentialState extends State<ViewCredential> {
     credentialData_map['credentialData'] = credentailDetails;
     sendData.addAll(credentialData_map);
 
-    CollectionReference showCredentials =
-        FirebaseFirestore.instance.collection('ShowCredential');
-    showCredentials.add(sendData).then((value) => {
+    var request =new http.MultipartRequest("POST", Uri.parse("https://shankarammai.com.np/VerifiableCredentials/public/api/saveShowCredential"));
+    request.fields['data'] = json.encode(sendData);
+    request.headers.addAll( {"Content-type": "multipart/form-data"});
+    var response = request.send();
+    print("Request Sent!");
+    response.then((response) async {
+      final responseString=await response.stream.bytesToString();
+      print(responseString);
+      if (response.statusCode == 200) {
+        Map responseJson=json.decode(responseString);
           Navigator.of(context)
               .push(MaterialPageRoute<Null>(builder: (BuildContext context) {
             /*
@@ -210,7 +225,7 @@ class _ViewCredentialState extends State<ViewCredential> {
      * */
             Map<String, dynamic> dataForQR = {
               'decryptionKey': verifierEnckey,
-              'documentId': value.id,
+              'docLink': "https://shankarammai.com.np/VerifiableCredentials/public/api/showCredential/"+responseJson["docId"],
               'QRtype': 'full'
             };
             return AlertDialog(
@@ -233,8 +248,12 @@ class _ViewCredentialState extends State<ViewCredential> {
                 ),
               ],
             );
-          }))
-        });
+
+          }
+          )
+          );
+        }}
+      );
   }
 
   @override

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:searchfield/searchfield.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 
 import 'ChooseIDDocuments.dart';
 
@@ -25,32 +28,42 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
 
   void _loadSelectedToFields(selectedValue) {
     print(selectedValue.item);
-    issuerNameController.text = selectedValue.item["data"]["name"];
-    issuerAPIController.text = selectedValue.item["data"]["documentAPI"];
+    issuerNameController.text = selectedValue.item["name"];
+    issuerAPIController.text = selectedValue.item["documentAPI"];
     issuerPublicKeyPEMController.text =
-        selectedValue.item["data"]["publicKeyPEM"];
+        selectedValue.item["publicKeyPEM"];
+  }
+
+  Future<List> fetchData() async {
+    final response =
+    await http.get(Uri.parse('https://shankarammai.com.np/VerifiableCredentials/public/api/getIssuers'));
+
+    if (response.statusCode == 200) {
+      final parsed = json.decode(response.body);//.cast<Map<String, dynamic>>();
+      return parsed;
+    } else {
+      throw Exception('Failed to load album');
+    }
   }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    FirebaseFirestore.instance
-        .collection('Issuers')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        Map<String, dynamic> docData = {'id': doc.id, 'data': data};
-        issuersDetail.add(docData);
-        print(issuersDetail);
+
+    fetchData().then((value) {
+      print(value);
+      setState(() {
+        value.forEach((element) {
+          issuersDetail.add(element);
+        });
       });
-      setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Choose Issuer'),
@@ -68,7 +81,7 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
                         label: Text('Search for known Issuers')),
                     suggestions: issuersDetail
                         .map((e) =>
-                            SearchFieldListItem(e['data']['name'], item: e))
+                              SearchFieldListItem(e['name'], item: e))
                         .toList(),
                     onSuggestionTap: (selectedValue) {
                       // print(selectedValue);
