@@ -134,7 +134,7 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar:
-            AppBar(title: const Text('Select ID Documents'), centerTitle: true),
+            AppBar(title: const Text('Select ID Documents'), centerTitle: true,backgroundColor: Colors.teal.shade500,),
         body: ListView(children: <Widget>[
           Column(children: <Widget>[
             Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[

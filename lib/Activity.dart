@@ -14,7 +14,7 @@ class _ActivityState extends State<Activity> with AutomaticKeepAliveClientMixin{
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-        appBar: AppBar(title: const Text('Activity')),
+        appBar: AppBar(title: const Text('Activity'),backgroundColor: Colors.teal.shade500),
         body: ListView.builder(
             itemCount: 50,
             itemBuilder: (context, index) {

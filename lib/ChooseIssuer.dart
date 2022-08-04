@@ -68,6 +68,7 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
       appBar: AppBar(
         title: const Text('Choose Issuer'),
         centerTitle: true,
+        backgroundColor: Colors.teal.shade500,
       ),
       body: ListView(
         children: <Widget>[

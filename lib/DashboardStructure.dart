@@ -49,11 +49,11 @@ class _DashboardStructureState extends State<DashboardStructure> {
           marginBottom: 10, //margin bottom
           icon: Icons.menu, //icon on Floating action button
           activeIcon: Icons.close, //icon when menu is expanded on button
-          backgroundColor: Colors.deepOrangeAccent, //background color of button
-          foregroundColor: Colors.white, //font color, icon color in button
+          backgroundColor: Colors.pink.shade500, //background color of button
+          foregroundColor: Colors.black, //font color, icon color in button
           activeBackgroundColor:
               Colors.deepPurpleAccent, //background color when menu is expanded
-          activeForegroundColor: Colors.white,
+          activeForegroundColor: Colors.black,
           buttonSize: 56.0, //button size
           visible: true,
           closeManually: false,

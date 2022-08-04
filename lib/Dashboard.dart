@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:verifiable_credentials/DashboardStructure.dart';
 import 'package:verifiable_credentials/services/file_read_write.dart';
 import 'services/secure_storage.dart';
 import 'dart:developer' as developer;
@@ -14,6 +15,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'ChooseIssuer.dart';
 import 'widgets/CustomWidget.dart';
+import 'package:http/http.dart' as http;
 
 class Dashboard extends StatefulWidget {
   Dashboard({Key? key}) : super(key: key);
@@ -27,8 +29,11 @@ class _DashboardState extends State<Dashboard>
   String privateKeyPEM = "";
   String publicKeyPEM = "";
   String Uuid = "";
-  List cloudCredentails = ['{"ss":"a"}'];
+  List cloudCredentails = [];
   List localCredentails = [];
+  bool cloudCredentialsLoaded=false;
+  bool localCredentialsLoaded=false;
+
   TextEditingController _textFieldController = TextEditingController();
   final SecureStorage secureStorage = SecureStorage();
 
@@ -36,15 +41,17 @@ class _DashboardState extends State<Dashboard>
     //decode
     //decrypt the credential
     // now save
-    dynamic configDetailsString = jsonEncode(data);
+    dynamic configDetailsString = data;
     writeToFile(configDetailsString, filename + '.json');
     print('Credentail file downloaded');
   }
 
   Future<Iterable> _getAllLocalCredentials() async {
-    dynamic directory =Platform.isAndroid  ? await getExternalStorageDirectory() : await getApplicationDocumentsDirectory();
-    Directory newDirectory=Directory('${directory.path}/credentials');
-    List entities= await newDirectory.list().toList();
+    dynamic directory = Platform.isAndroid
+        ? await getExternalStorageDirectory()
+        : await getApplicationDocumentsDirectory();
+    Directory newDirectory = Directory('${directory.path}/credentials');
+    List entities = await newDirectory.list().toList();
     return entities.whereType<File>();
   }
 
@@ -54,173 +61,222 @@ class _DashboardState extends State<Dashboard>
       setState(() {
         publicKeyPEM = value.toString();
       });
-
     });
     secureStorage.readSecureData("privateKeyPEM").then((value) {
       setState(() {
         privateKeyPEM = value.toString();
       });
-
     });
     secureStorage.readSecureData("Uuid").then((value) {
-      setState(() {
-        Uuid = value.toString();
+      //getting all the Recently issued documents by issuer
+      var url = Uri.parse(
+          'https://shankarammai.com.np/VerifiableCredentials/public//api/getMyIssuedCredentials');
+      var body = {'userUuid': '802ce171-3641-4262-bc90-ff06fc15333d'};
+      var req = http.MultipartRequest('POST', url);
+      req.fields.addAll(body);
+      var res = req.send();
+      res.then((response) async {
+        final resBody = await response.stream.bytesToString();
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final myClouddocs = json.decode(resBody);
+          cloudCredentialsLoaded=true;
+          setState(() {
+            Uuid = value.toString();
+            cloudCredentails = myClouddocs;
+          });
+        } else {
+          print(response.reasonPhrase);
+        }
       });
-
     });
-    print("Dashboard ");
-    print(publicKeyPEM);
     print(Uuid);
     super.initState();
+    //gettting all the credentials saved locally
     _getAllLocalCredentials().then((value) {
-      setState(() {localCredentails=value.toList();});
+      localCredentialsLoaded=true;
+      setState(() {
+        localCredentails = value.toList();
+      });
     });
     print(localCredentails);
-
-
-
-    FirebaseFirestore.instance
-        .collection('issuedDocuments')
-        .where('holderUuid', isEqualTo: Uuid)
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        final Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        Map<String, dynamic> docData = {'id': doc.id, 'data': data};
-        cloudCredentails.add(docData);
-        print(cloudCredentails);
-      });
-      setState(() {});
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-        appBar: AppBar(title: Text('Dashboard')),
+        appBar: AppBar(
+          title: Text('Dashboard'),
+          backgroundColor: Colors.teal.shade500,
+        ),
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(left: 10),
+                    child: Text(
+                      'Your  Credentials',
+                      textAlign: TextAlign.left,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Spacer(),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      shape: CircleBorder(),
+                    ),
+                    child: const Icon(
+                      Icons.restart_alt_rounded,
+                      color: Colors.black,
+                    ),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const DashboardStructure()));
+                    },
+                  )
+                ],
+              ),
               Container(
                 height: MediaQuery.of(context).size.height * 0.50,
-                width: MediaQuery.of(context).size.width * 0.95,
-                child: ListView(
+                width: MediaQuery.of(context).size.width * 0.90,
+                child: (!localCredentialsLoaded)? Center(child: CircularProgressIndicator()) :
+                (localCredentails.isEmpty)?Center(child:Text('No Saved Credentials Found')):ListView(
                     itemExtent: 150,
-                    children:localCredentails.map((credential) {
-                            File credentialDoc=credential;
-                            int fileIndex=localCredentails.indexOf(credential);
-                              return ElevatedCard(credentialName: credentialDoc.path.split('/').last,fileIndex:fileIndex);
-                    }).toList()
-                    ),
+                    children: localCredentails.map((credential) {
+                      File credentialDoc = credential;
+                      int fileIndex = localCredentails.indexOf(credential);
+                      return ElevatedCard(
+                          credentialName: credentialDoc.path.split('/').last,
+                          fileIndex: fileIndex);
+                    }).toList()),
               ),
               const Divider(
-                height: 10,
+                color: Colors.grey,
+                height: 15,
               ),
+              Row(children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Text(
+                    'Recently Issued Cloud Credentials',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Spacer()
+              ]),
               Container(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.25,
-                child: ListView(
+                height: MediaQuery.of(context).size.height * 0.30,
+                child:(!cloudCredentialsLoaded)? Center(child: CircularProgressIndicator()) :
+                (cloudCredentails.isEmpty)?Center(child:Text('No Issued Credentials Found')):ListView(
                     scrollDirection: Axis.horizontal,
                     children: cloudCredentails.map((credential) {
+                      var credData = credential["data"];
+                      Map<String, dynamic> credJson = json.decode(credData);
                       return Card(
-
+                          color: Colors.grey.shade400,
                           child: Column(
-                        children: [
-                          const SizedBox(
-                            width: 200,
-                            height: 150,
-                            child: Center(child: Text('Elevated Card')),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.greenAccent,
-                                  shape: CircleBorder(),
-                                ),
-                                child: const Icon(
-                                  Icons.download,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {
-                                  var text = '''{
-            "issuer": {
-              "uuid": "",
-              "publicKey": "",
-              "name": "", //optional
-              "website": ""
-            },
-            "credentialSubject": {
-              "uuid": "",
-              "publicKey": ""
-            },
-            "proof": {
-              "type": "",
-              "created": "",
-              "proofValue": ""
-            },
-            "credentialData": {
-              "data": "",
-              "encryptionKey": "",
-              "encryptionType": "",
-              "fields": [],
-              "selectiveFieldsproof": {
-                "field1": "",
-                "field2": ""
-              }
-            }
-          }
-          ''';
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: Text('Document Name'),
-                                          content: TextField(
-                                            controller: _textFieldController,
-                                            decoration: InputDecoration(
-                                                hintText:
-                                                    "Enter Document Name"),
-                                          ),
-                                          actions: <Widget>[
-                                            ElevatedButton(
-                                              child: Text('Save'),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _download_credential(
-                                                      "credentials/" +
-                                                          _textFieldController
-                                                              .text,
-                                                      "data");
-                                                  print(_textFieldController
-                                                      .text);
-                                                  Navigator.pop(context);
-                                                });
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      });
-                                },
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20.0),
+                                child: Text('Issued By',
+                                    textAlign: TextAlign.left,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w600)),
                               ),
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  backgroundColor: Colors.orangeAccent,
-                                  shape: CircleBorder(),
-                                ),
-                                child: const Icon(
-                                  Icons.delete_forever,
-                                  color: Colors.white,
-                                ),
-                                onPressed: () {},
+                              Text(credJson['issuer']['name']),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20.0),
+                                child: Text('Created on',
+                                    textAlign: TextAlign.left,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w600)),
+                              ),
+                              Text(credJson['proof']['created']),
+                              SizedBox(
+                                  width: 200,
+                                  height: 25,
+                                  child: Center(
+                                    child: Text(''),
+                                  )),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: Colors.greenAccent,
+                                      shape: CircleBorder(),
+                                    ),
+                                    child: const Icon(
+                                      Icons.download,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      print(credData);
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text('Document Name'),
+                                              content: TextField(
+                                                controller:
+                                                    _textFieldController,
+                                                decoration: InputDecoration(
+                                                    hintText:
+                                                        "Enter Document Name"),
+                                              ),
+                                              actions: <Widget>[
+                                                ElevatedButton(
+                                                  child: Text('Save'),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _download_credential(
+                                                          "credentials/" +
+                                                              _textFieldController
+                                                                  .text,
+                                                          credData);
+                                                      print(_textFieldController
+                                                          .text);
+                                                          Navigator.pushReplacement(
+                                                          context,
+                                                          MaterialPageRoute(
+                                                          builder: (context) =>
+                                                          const DashboardStructure()));
+
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          });
+                                    },
+                                  ),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      backgroundColor: Colors.orangeAccent,
+                                      shape: CircleBorder(),
+                                    ),
+                                    child: const Icon(
+                                      Icons.delete_forever,
+                                      color: Colors.white,
+                                    ),
+                                    onPressed: () {},
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
-                      ));
+                          ));
                     }).toList()),
               ),
             ],

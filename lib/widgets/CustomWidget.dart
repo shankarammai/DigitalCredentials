@@ -9,12 +9,13 @@ class ElevatedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List colorsPallate=[Colors.blueAccent,
-      Colors.cyanAccent.shade700,
-      Colors.green,
-      Colors.blueGrey,
-      Colors.deepPurple,
-      Colors.indigoAccent
+    List colorsPallate=[
+      Colors.blue.shade500,
+      Colors.indigoAccent,
+      Colors.green.shade500,
+      Colors.blueGrey.shade500,
+      Colors.purple.shade500,
+      Colors.lightGreen.shade500
     ];
       return GestureDetector(
       onTap: () {

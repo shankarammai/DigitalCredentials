@@ -67,24 +67,30 @@ class _VerifyCredentialState extends State<VerifyCredential> {
 
                 credentialDataJson.forEach((key, value) {
                   documentWidgets
-                      .add(Divider(height: 30.0, color: Colors.grey[800]));
-                  documentWidgets.add(Text(
-                    key.toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      letterSpacing: 1.0,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 20.0,
+                      .add(Divider(height: 8.0, color: Colors.grey[800]));
+                  documentWidgets.add(Padding(
+                    padding: const EdgeInsets.only(
+                        left: 12.0),
+                    child: Text(
+                      key.toString(),
+                      style: TextStyle(
+                        letterSpacing: 1.0,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18.0,
+                      ),
                     ),
                   ));
 
-                  documentWidgets.add(Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      letterSpacing: 2.0,
-                      fontSize: 24.0,
-                      fontWeight: FontWeight.bold,
+                  documentWidgets.add(Padding(
+                    padding: const EdgeInsets.only(left: 12.0),
+                    child: Text(
+                      value,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ));
                 });
@@ -174,6 +180,7 @@ class _VerifyCredentialState extends State<VerifyCredential> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Verify Credential'),
+        backgroundColor: Colors.teal.shade500,
         centerTitle: true,
       ),
       body: Center(
