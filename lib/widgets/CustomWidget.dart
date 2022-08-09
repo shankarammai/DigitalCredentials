@@ -27,10 +27,14 @@ class ElevatedCard extends StatelessWidget {
         );
       },
         child: Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.0)),
           child: SizedBox(
             width: 300,
             height: 100,
-            child: Center(child: Text(this.credentialName.split('.').first)),
+            child: Center(child:
+            Text(this.credentialName.split('.').first,
+                style: TextStyle(fontWeight: FontWeight.w400,color: Colors.white)
+            )),
 
           ),
           color: colorsPallate[(this.fileIndex+1)%6],

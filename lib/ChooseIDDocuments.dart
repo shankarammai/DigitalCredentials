@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:verifiable_credentials/services/secure_storage.dart';
@@ -94,16 +91,22 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
       var response = request.send();
       print("Request Sent!");
       response.then((response) async {
+        //Removing Loading Alert
+        Navigator.pop(context);
         final responseString=await response.stream.bytesToString();
         print(responseString);
         if (response.statusCode == 200){
           // final decodedResponse= jsonDecode(responseString);
           showDialog(
               context: context,
-              builder: (_) => const AlertDialog(
+              builder: (_) => AlertDialog(
                 title: Text('Request Sent'),
-                content: Icon(Icons.verified_sharp,color: Colors.greenAccent),
-              ));
+                content: Icon(Icons.check_circle,color: Colors.greenAccent,size: 48,),
+                actions: [ TextButton(
+                    onPressed:()=>Navigator.pop(context),
+                    child: Text('Close'),)],
+              )
+          );
           setState(() {
             isSending = false;
           });
@@ -118,7 +121,9 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
               builder: (_) => const AlertDialog(
                 title: Text('Error'),
                 content: Icon(Icons.error_outlined,color: Colors.redAccent),
-              ));
+              )
+
+          );
         }
 
       });
@@ -177,15 +182,7 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
               style: ElevatedButton.styleFrom(
                 shape: const StadiumBorder(),
               ),
-              child: isSending
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const <Widget>[
-                          CircularProgressIndicator(color: Colors.white),
-                          SizedBox(width: 15),
-                          Text("Please Wait ..")
-                        ])
-                  : const Text('Send Document'),
+              child: isSending ? const Text('Sending') : const Text('Send Documents'),
               onPressed: () {
                 if (files.length < 1) {
                   showDialog(
@@ -196,6 +193,31 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
                           ));
                   return;
                 }
+                showDialog(
+                    barrierDismissible: false,
+                    context: context,
+                    builder: (_) {
+                      return Dialog(
+                        // The background color
+                        backgroundColor: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              // The loading indicator
+                              CircularProgressIndicator(),
+                              SizedBox(
+                                height: 15,
+                              ),
+                              // Some text
+                              Text('Loading...')
+                            ],
+                          ),
+                        ),
+                      );
+                    });
+
                 setState(() {
                   isSending = true;
                 });

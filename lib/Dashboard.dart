@@ -70,8 +70,8 @@ class _DashboardState extends State<Dashboard>
     secureStorage.readSecureData("Uuid").then((value) {
       //getting all the Recently issued documents by issuer
       var url = Uri.parse(
-          'https://shankarammai.com.np/VerifiableCredentials/public//api/getMyIssuedCredentials');
-      var body = {'userUuid': '802ce171-3641-4262-bc90-ff06fc15333d'};
+          'https://shankarammai.com.np/VerifiableCredentials/public/api/getMyIssuedCredentials');
+      var body = {'userUuid': value.toString()};
       var req = http.MultipartRequest('POST', url);
       req.fields.addAll(body);
       var res = req.send();
@@ -99,6 +99,76 @@ class _DashboardState extends State<Dashboard>
       });
     });
     print(localCredentails);
+  }
+  late BuildContext dialogcontext;
+  void show_delete_loading(String id){
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext context) {
+          dialogcontext=context;
+          bool deleteClicked=false;
+          return StatefulBuilder(
+              builder: (context,setState){
+                return AlertDialog(
+                  // The background color
+                  backgroundColor: Colors.white,
+                  title: Text('Confirmation'),
+                  content: Text('Are you sure to delete'),
+                  actions: [
+                    Column(children: [
+                      (deleteClicked)? Center(child:CircularProgressIndicator()):
+                      Row( mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
+                        TextButton(
+                            onPressed:(){
+                              setState((){
+                                deleteClicked=true;
+                              });
+                              make_delete_request(id);}, //sending API request to delete
+                            child: Icon(Icons.check_circle,size: 48,color: Colors.redAccent)),
+                        TextButton(
+                          onPressed:()=>Navigator.pop(context),
+                          child: Icon(Icons.close,size: 48,color: Colors.grey,),)
+                      ]),
+                      TextButton(
+                        onPressed:()=>Navigator.pop(context),
+                        child: Text('Close'),)
+                    ],
+                    ),
+
+                  ],
+                );
+              });
+
+        });
+  }
+
+  void make_delete_request(String id){
+    var request = new http.MultipartRequest(
+        "POST",
+        Uri.parse(
+            "https://shankarammai.com.np/VerifiableCredentials/public/api/deleteMyCredential"));
+    request.fields['delete_id'] = id;
+    request.headers.addAll({"Content-type": "multipart/form-data"});
+    var response = request.send();
+    response.then((value) {
+      response.then((responseback) async {
+        final responseString = await responseback.stream.bytesToString();
+        print(responseString);
+        if (responseback.statusCode == 200) {
+          Map responseJson = json.decode(responseString);
+          if(responseJson['success']){
+            //Removing Loading Screen
+            Navigator.pop(dialogcontext);
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                    const DashboardStructure()));
+          }
+        }});
+    });
+
   }
 
   @override
@@ -182,8 +252,9 @@ class _DashboardState extends State<Dashboard>
                     scrollDirection: Axis.horizontal,
                     children: cloudCredentails.map((credential) {
                       var credData = credential["data"];
-                      Map<String, dynamic> credJson = json.decode(credData);
+                      Map<String, dynamic> credJson = json.decode(credData); //only the credential data sent by issuer
                       return Card(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
                           color: Colors.grey.shade400,
                           child: Column(
                             children: [
@@ -271,7 +342,9 @@ class _DashboardState extends State<Dashboard>
                                       Icons.delete_forever,
                                       color: Colors.white,
                                     ),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      show_delete_loading(credential['uuid']);
+                                    },
                                   ),
                                 ],
                               ),

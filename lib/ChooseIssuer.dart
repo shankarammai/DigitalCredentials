@@ -91,13 +91,30 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
                       _loadSelectedToFields(selectedValue);
                     }),
               ),
+              Row(
+                  children: <Widget>[
+                    Expanded(
+                        child: Divider(thickness: 2,)
+                    ),
+                    Padding(padding:const EdgeInsets.only(left: 8.0,right: 8.0) ,child:Text(
+                      'OR',
+                      textAlign: TextAlign.left,
+                      style:
+                      TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    )),
+
+                    Expanded(
+                        child: Divider(thickness: 2,)
+                    ),
+                  ]
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                     controller: issuerNameController,
                     decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        label: Text('Issuer Name'))),
+                        label: Text('Type Issuer Name'))),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -105,7 +122,7 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
                     controller: issuerAPIController,
                     decoration: const InputDecoration(
                         border: OutlineInputBorder(),
-                        label: Text('Issuer API Link'))),
+                        label: Text('Provide Issuer API Link'))),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

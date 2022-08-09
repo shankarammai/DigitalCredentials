@@ -152,8 +152,7 @@ class _ViewCredentialState extends State<ViewCredential> {
       print(responseString);
       if (response.statusCode == 200) {
         Map responseJson = json.decode(responseString);
-        Navigator.of(context)
-            .push(MaterialPageRoute<Null>(builder: (BuildContext context) {
+
           /*
      * decryptionKey = key to decrypt the encrypted data
      * docLink = document ID firebase, or API key
@@ -166,27 +165,33 @@ class _ViewCredentialState extends State<ViewCredential> {
                     responseJson["docId"],
             'QRtype': 'individual'
           };
-          return AlertDialog(
-            title: Text('Scan this QR'),
-            content: Container(
-                height: MediaQuery.of(context).size.height / 2,
-                width: MediaQuery.of(context).size.width,
-                child: BarcodeWidget(
-                  barcode: Barcode.qrCode(
-                      errorCorrectLevel: BarcodeQRCorrectionLevel
-                          .high), // Barcode type and settings
-                  data: jsonEncode(dataForQR), // Content
-                  width: 200,
-                  height: 200,
-                )),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('DONE'),
-              ),
-            ],
+          showDialog(
+            barrierColor: Colors.white24,
+              barrierLabel: 'label',
+              context: context,
+              builder: (BuildContext context) =>
+                  AlertDialog(
+                    title: Text('Scan this QR'),
+                    content: Container(
+                        height: MediaQuery.of(context).size.height / 2,
+                        width: MediaQuery.of(context).size.width,
+                        child: BarcodeWidget(
+                          barcode: Barcode.qrCode(
+                              errorCorrectLevel: BarcodeQRCorrectionLevel
+                                  .high), // Barcode type and settings
+                          data: jsonEncode(dataForQR), // Content
+                          width: 200,
+                          height: 200,
+                        )),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text('DONE'),
+                      ),
+                    ],
+                  )
           );
-        }));
+
       }
     });
   }
@@ -224,8 +229,6 @@ class _ViewCredentialState extends State<ViewCredential> {
       print(responseString);
       if (response.statusCode == 200) {
         Map responseJson = json.decode(responseString);
-        Navigator.of(context)
-            .push(MaterialPageRoute<Null>(builder: (BuildContext context) {
           /*
      * decryptionKey = key to decrypt the encrypted data
      * documentId = document ID firebase, or API key
@@ -238,27 +241,30 @@ class _ViewCredentialState extends State<ViewCredential> {
                     responseJson["docId"],
             'QRtype': 'full'
           };
-          return AlertDialog(
-            title: Text('Scan this QR'),
-            content: Container(
-                height: MediaQuery.of(context).size.height / 2,
-                width: MediaQuery.of(context).size.width,
-                child: BarcodeWidget(
-                  barcode: Barcode.qrCode(
-                      errorCorrectLevel: BarcodeQRCorrectionLevel
-                          .high), // Barcode type and settings
-                  data: jsonEncode(dataForQR), // Content
-                  width: 200,
-                  height: 200,
-                )),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('DONE'),
-              ),
-            ],
-          );
-        }));
+        showDialog(
+            context: context,
+            builder: (BuildContext context) =>
+                AlertDialog(
+                  title: Text('Scan this QR'),
+                  content: Container(
+                      height: MediaQuery.of(context).size.height / 2,
+                      width: MediaQuery.of(context).size.width,
+                      child: BarcodeWidget(
+                        barcode: Barcode.qrCode(
+                            errorCorrectLevel: BarcodeQRCorrectionLevel
+                                .high), // Barcode type and settings
+                        data: jsonEncode(dataForQR), // Content
+                        width: 200,
+                        height: 200,
+                      )),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('DONE'),
+                    ),
+                  ],
+                )
+        );
       }
     });
   }
@@ -273,15 +279,18 @@ class _ViewCredentialState extends State<ViewCredential> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton(
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(primary: Colors.blue),
                 onPressed: _show_selected_qr,
-                child: const Text('Show Selected '),
+                label: Text('Selected fields QR'),
+                icon: Icon(Icons.qr_code_2_rounded),
+                // child: const Text('Show Selected '),
               ),
-              ElevatedButton(
+              ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(primary: Colors.deepPurple),
                 onPressed: _show_full_qr,
-                child: const Text('Show Full '),
+                label: Text('Full credential QR'),
+                icon: Icon(Icons.qr_code_2_rounded),
               ),
             ],
           ),
@@ -314,7 +323,7 @@ class _ViewCredentialState extends State<ViewCredential> {
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(
-                                      left: 12.0),
+                                      left: 20.0),
                                   child: Text(
                                     e.key.toString(),
                                     style: TextStyle(
@@ -325,7 +334,7 @@ class _ViewCredentialState extends State<ViewCredential> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
+                                  padding: const EdgeInsets.only(right: 20.0),
                                   child: Checkbox(
                                       value:
                                           this.selectedFields.contains(e.key),
@@ -345,7 +354,7 @@ class _ViewCredentialState extends State<ViewCredential> {
                               ],
                             ),
                             Padding(
-                              padding: const EdgeInsets.only(left: 12.0),
+                              padding: const EdgeInsets.only(left: 20.0),
                               child: Text(
                                 e.value,
                                 textAlign: TextAlign.start,
