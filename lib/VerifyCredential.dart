@@ -7,6 +7,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:encrypt/encrypt.dart' as cryptolib;
 import 'package:cool_alert/cool_alert.dart';
 import 'package:http/http.dart' as http;
+import 'package:verifiable_credentials/services/secure_storage.dart';
 
 class VerifyCredential extends StatefulWidget {
   VerifyCredential({Key? key}) : super(key: key);
@@ -26,6 +27,8 @@ class _VerifyCredentialState extends State<VerifyCredential> {
   String? decryptionKey;
   String? presentedCredentialData;
   List<Widget> documentWidgets = [];
+  final SecureStorage secureStorage = SecureStorage();
+  late final String myuuid;
 
   void scanQR(QRViewController controller) {
     this.controller = controller;
@@ -42,7 +45,7 @@ class _VerifyCredentialState extends State<VerifyCredential> {
           print('Document Id >>>>>>>>>>>>>>' + documentId);
           //get data from service provider
 
-          final response = http.get(Uri.parse(documentId));
+          final response = http.get(Uri.parse(documentId+'/'+myuuid));
           response.then((responseback)  {
             if(responseback.statusCode==200){
               final responseJson = json.decode(responseback.body);
@@ -171,6 +174,16 @@ class _VerifyCredentialState extends State<VerifyCredential> {
         print(documentWidgets);
 
         scanBarcode = "";
+      });
+    });
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    secureStorage.readSecureData("Uuid").then((value) {
+      setState(() {
+        myuuid = value.toString();
       });
     });
   }

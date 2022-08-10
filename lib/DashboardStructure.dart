@@ -23,7 +23,7 @@ class _DashboardStructureState extends State<DashboardStructure> {
   final SecureStorage secureStorage = SecureStorage();
 
   PageController _pageController = PageController();
-  List<Widget> _screens = [Dashboard(), Activity()];
+  List<Widget> _screens = [Dashboard(), Dashboard()];
 
   void _onItemTapped(int index) {
     _pageController.jumpToPage(index);

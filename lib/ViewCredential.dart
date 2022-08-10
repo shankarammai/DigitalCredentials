@@ -17,6 +17,8 @@ import 'package:verifiable_credentials/services/secure_storage.dart';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 
+import 'Activity.dart';
+
 class ViewCredential extends StatefulWidget {
   final String credentailDocument;
   const ViewCredential({Key? key, required this.credentailDocument})
@@ -28,6 +30,7 @@ class ViewCredential extends StatefulWidget {
 }
 
 class _ViewCredentialState extends State<ViewCredential> {
+  List allcreatedQR=[];
   final String credentialDocument;
   late String publicKeyPEM,
       privateKeyPEM,
@@ -58,6 +61,15 @@ class _ViewCredentialState extends State<ViewCredential> {
     await _getDataFromStorage('privateKeyPEM').then((value) {
       privateKeyPEM = value.toString();
     });
+
+    secureStorage.containsKeyInSecureData(this.credentialDocument).then((value) async {
+     if(value){
+       await _getDataFromStorage(this.credentialDocument).then((value) {
+         allcreatedQR = json.decode(value);
+       });
+     }
+    });
+
     await readFile('credentials/' + this.credentialDocument).then((value) {
       fileContents = value.toString();
     });
@@ -191,7 +203,10 @@ class _ViewCredentialState extends State<ViewCredential> {
                     ],
                   )
           );
-
+          //Save the ID to see who accessed it.
+              allcreatedQR.add(responseJson["docId"]);
+              secureStorage.deleteSecureData(this.credentialDocument);
+              secureStorage.writeSecureData(StorageItem(credentialDocument, json.encode(allcreatedQR)));
       }
     });
   }
@@ -263,8 +278,11 @@ class _ViewCredentialState extends State<ViewCredential> {
                       child: Text('DONE'),
                     ),
                   ],
-                )
-        );
+                ));
+        //Save the ID to see who accessed it.
+        allcreatedQR.add(responseJson["docId"]);
+        secureStorage.deleteSecureData(this.credentialDocument);
+        secureStorage.writeSecureData(StorageItem(credentialDocument, json.encode(allcreatedQR)));
       }
     });
   }
@@ -284,7 +302,6 @@ class _ViewCredentialState extends State<ViewCredential> {
                 onPressed: _show_selected_qr,
                 label: Text('Selected fields QR'),
                 icon: Icon(Icons.qr_code_2_rounded),
-                // child: const Text('Show Selected '),
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(primary: Colors.deepPurple),
@@ -293,6 +310,18 @@ class _ViewCredentialState extends State<ViewCredential> {
                 icon: Icon(Icons.qr_code_2_rounded),
               ),
             ],
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(primary: Colors.deepPurple),
+            onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Activity(allcreatedQR: allcreatedQR))
+              );
+              },
+            label: Text('Activities'),
+            icon: Icon(Icons.format_line_spacing_sharp),
           ),
           FutureBuilder<List>(
             future: _load_Details(),
@@ -375,7 +404,7 @@ class _ViewCredentialState extends State<ViewCredential> {
                 return Text('State: ${snapshot.connectionState}');
               }
             },
-          )
+          ),
         ]));
   }
 }
