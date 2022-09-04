@@ -16,6 +16,8 @@ import 'package:verifiable_credentials/services/key_generatation.dart';
 import 'package:verifiable_credentials/services/secure_storage.dart';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
 
 import 'Activity.dart';
 
@@ -112,7 +114,14 @@ class _ViewCredentialState extends State<ViewCredential> {
       // setState(() {});
     });
   }
+  download_credential(credentialDoc, String credentialDocument,type){
+    dynamic downloadDetailsString = jsonEncode(credentialDoc);
+    DateTime now = DateTime.now();
+    String formattedDate = DateFormat('kk:mm:ss \n EEE d MMM').format(now);
+    writeToFile(downloadDetailsString, "/downloads/" +credentialDocument.split('.').first +type + formattedDate +'.json');
+    print('Downloaded');
 
+  }
   _show_selected_qr() async {
     var sendData = credentialDocumentJson;
     //get all the fields then encrypt it
@@ -197,9 +206,24 @@ class _ViewCredentialState extends State<ViewCredential> {
                         )),
                     actions: [
                       TextButton(
+                        onPressed: (){
+                          // Map<String,dynamic> credentialDocToDownload =Map();
+                              var credentialDocToDownload= credentialDocumentJson;
+                          credentialDocToDownload.remove('credentialData');
+                          dynamic credentialDataToDownload = {
+                            'data': credentialData_map,
+                            'selectiveFieldsproof': selectiveProofsToShow
+                          };;
+                          credentialDocToDownload["credentialData"]=credentialDataToDownload;
+                          download_credential(credentialDocToDownload,this.credentialDocument,'individual');
+                        },
+                        child: Text('Download For Web'),
+                      ),
+                      TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text('DONE'),
                       ),
+                      
                     ],
                   )
           );
@@ -273,6 +297,19 @@ class _ViewCredentialState extends State<ViewCredential> {
                         height: 200,
                       )),
                   actions: [
+                    TextButton(
+                      onPressed: (){
+                        // Map<String,dynamic> credentialDocToDownload =Map();
+                        var credentialDocToDownload= credentialDocumentJson;
+                        credentialDocToDownload.remove('credentialData');
+                        dynamic credentialDataToDownload = {
+                          'data': credentialDataJson,
+                        };;
+                        credentialDocToDownload["credentialData"]=credentialDataToDownload;
+                        download_credential(credentialDocToDownload,this.credentialDocument,'full');
+                      },
+                      child: Text('Download For Web'),
+                    ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: Text('DONE'),

@@ -9,6 +9,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'ChooseIssuer.dart';
 import 'Dashboard.dart';
+import 'Profile.dart';
 
 
 class DashboardStructure extends StatefulWidget {
@@ -23,7 +24,7 @@ class _DashboardStructureState extends State<DashboardStructure> {
   final SecureStorage secureStorage = SecureStorage();
 
   PageController _pageController = PageController();
-  List<Widget> _screens = [Dashboard(), Dashboard()];
+  List<Widget> _screens = [Dashboard(), Profile()];
 
   void _onItemTapped(int index) {
     _pageController.jumpToPage(index);
@@ -105,8 +106,8 @@ class _DashboardStructureState extends State<DashboardStructure> {
               label: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.view_timeline_outlined),
-              label: 'Activities',
+              icon: Icon(Icons.person),
+              label: 'Profile',
             ),
           ],
           currentIndex: _selectedIndex,
