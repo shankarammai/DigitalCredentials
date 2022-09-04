@@ -1,15 +1,14 @@
-# verifiable_credentials
+# Digital Credential Application
 
-A new Flutter project.
+This project was developed using flutter to make it easier to automate the claims verifications process using cryptographic concepts. 
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Some of the features
+	Requesting Credential Document.
+	Presenting Credentail using QR.
+	Downloading credential as JSON for web purpose.
+	Verification of credential.
+	Disclose only the fields required.
+	Stats on presented credential
 
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,
