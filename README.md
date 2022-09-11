@@ -5,11 +5,11 @@ This project was developed using flutter to make it easier to automate the claim
 ### Directories Explained
 ---
 - Example folder
- - contains example of JSON digital credential file created, QR codes
+  - contains example of JSON digital credential file created, QR codes
 - IssuerWebApplicaiton
- - contains Issuer's web application implemented using codeIgnitor. Acts like issuer's software used for creating digital credentials
+  - contains Issuer's web application implemented using codeIgnitor. Acts like issuer's software used for creating digital credentials
 - libs
- - Contains code written to make the applicaiton using flutter. main.dart is the starting point of the application.
+  - Contains code written to make the applicaiton using flutter. main.dart is the starting point of the application.
 
 ### Some of the features of mobile applicaiton made
 ---
@@ -19,6 +19,12 @@ This project was developed using flutter to make it easier to automate the claim
 >- Verification of credential.
 >- Disclose only the fields required.
 >- Stats on presented credential
+
+### Some of the features of issuer's applicaiton
+---
+>- Enable API requests to send credentials requests 
+>- Show credential requests 
+>- Generate digital credentials for users
 
 For help getting started with Flutter, Official Documentation is here [online documentation](https://flutter.dev/docs).
 To start the issuer's web application, Official Documentation is here [online documentation](https://codeigniter.com/user_guide/index.html).
