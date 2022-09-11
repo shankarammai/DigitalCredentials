@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -51,6 +52,7 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
   _ChooseIDDocumentsState(
       this.documentAPI, this.issuerName, this.issuerPublicKeyPEM);
 
+  //Choosing picture from gallery
   Future _pickPicture() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image == null) return;
@@ -61,6 +63,7 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
     print(files);
   }
 
+  //Taking picture
   Future _takePicture() async {
     final image = await ImagePicker().pickImage(source: ImageSource.camera);
     if (image == null) return;
@@ -71,12 +74,14 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
     print(files);
   }
 
+  //Sending document to the issuer
   _send_documents() async {
+    try {
     var request =new http.MultipartRequest("POST", Uri.parse(this.documentAPI));
     request.fields['holderPublicKeyPEM'] = this.holderPublicKeyPEM;
     request.fields['holderUuid'] = this.holderUuid;
     request.fields['totalFiles'] = files.length.toString();
-    request.fields['returnAPI'] = 'this Will be the return API for credentials';
+    request.fields['returnAPI'] = 'https://shankarammai.com.np/VerifiableCredentials/api/sendCredential';
     Map<String, String> headers = {"Content-type": "multipart/form-data"};
 
     ///Adding all the image files
@@ -87,7 +92,7 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
     }
     request.headers.addAll(headers);
 
-    try {
+
       var response = request.send();
       print("Request Sent!");
       response.then((response) async {
@@ -96,7 +101,7 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
         final responseString=await response.stream.bytesToString();
         print(responseString);
         if (response.statusCode == 200){
-          // final decodedResponse= jsonDecode(responseString);
+           final decodedResponse= json.decode(responseString);
           showDialog(
               context: context,
               builder: (_) => AlertDialog(
@@ -127,11 +132,30 @@ class _ChooseIDDocumentsState extends State<ChooseIDDocuments> {
         }
 
       });
-    } catch (err) {
+    } on FormatException catch (ex){
+      setState(() {
+        isSending = false;
+      });
+      showDialog(
+          context: context,
+          builder: (_) => const AlertDialog(
+            title: Text('Error'),
+            content: Icon(Icons.error_outlined,color: Colors.redAccent),
+          )
+      );
+    }
+    catch (err) {
       print(err);
       setState(() {
         isSending = false;
       });
+      showDialog(
+          context: context,
+          builder: (_) => const AlertDialog(
+            title: Text('Error'),
+            content: Icon(Icons.error_outlined,color: Colors.redAccent),
+          )
+      );
     }
   }
 

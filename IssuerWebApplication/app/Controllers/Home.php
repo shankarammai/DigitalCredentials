@@ -80,6 +80,20 @@ EOD;
             $holderPublicKeyPEM=$request_Data['holderPublicKeyPEM'];
             $holderUuid=$request_Data['holderUuid'];
 
+            json_decode($replyJson);
+            if(json_last_error() != JSON_ERROR_NONE){
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error</strong> Invalid JSON provided.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>';
+
+        $data['requests'] = $Requests->where('request_served', 0)->orderBy('id', 'DESC')->findAll();
+        return view('dashboard',$data);
+            }
+
+
         $issuerPrivateKey=openssl_pkey_get_private($issuerPrivateKeyPEM);
 
 
@@ -304,10 +318,42 @@ EOD;
         return view('send_docs_instructions');
     }
 
-
-    public function Verify(){
+    public function verify(){
 
         return view('verify');
+    }
+
+    public function verify_Doc(){
+        $credentialDoc = $this->request->getPost("credentialDocument"); //getting post data
+        $tempData = html_entity_decode($credentialDoc);  // remving JSON stringfy from client side
+        $credentialDocument = json_decode($tempData,$associative = true); // making php JSON object
+
+
+        if(json_last_error() != JSON_ERROR_NONE){
+            return $this->response->setJSON(["verified"=>false,'message'=>"invalid credential document"]);
+        }
+
+        $pubkeyPEM=$credentialDocument['issuer']['publicKey'];
+        $signature=$credentialDocument['proof']['proofValue'];
+        $data=$credentialDocument['credentialData']['data'];
+        $pkey = openssl_pkey_get_public($pubkeyPEM);
+        $signaturedecoded=base64_decode($signature);
+
+        $ok = openssl_verify($json_encode($data), $signaturedecoded, $pkey, OPENSSL_ALGO_SHA256);
+        if ($ok == 1) {
+            return $this->response->setJSON(["verified"=>true,'message'=>"valid signature"]);
+
+        } elseif ($ok == 0) {
+            return $this->response->setJSON(["verified"=>false,'message'=>"invalid signature"]);
+
+        } else {
+            return $this->response->setJSON(["verified"=>true,'message'=>'openssl_error_string()']);
+
+        }
+
+        
+
+
     }
 
 

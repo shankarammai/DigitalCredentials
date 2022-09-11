@@ -1,6 +1,4 @@
 import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -21,7 +19,6 @@ class _VerifyCredentialState extends State<VerifyCredential> {
   QRViewController? controller;
   Barcode? result;
   bool showCamera = true;
-  bool showWidgets = false;
   late Map jsonQR;
   late Map credentialDoc;
   String? decryptionKey;
@@ -30,6 +27,19 @@ class _VerifyCredentialState extends State<VerifyCredential> {
   final SecureStorage secureStorage = SecureStorage();
   late final String myuuid;
 
+  //Fetch issuers details from trusted third party
+  Future<List> fetchData() async {
+    final response =
+    await http.get(Uri.parse('https://shankarammai.com.np/VerifiableCredentials/public/api/getIssuers'));
+
+    if (response.statusCode == 200) {
+      final parsed = json.decode(response.body);//.cast<Map<String, dynamic>>();
+      return parsed;
+    } else {
+      throw Exception('Failed to load issuers from API');
+    }
+  }
+  
   void scanQR(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((event) {
@@ -100,13 +110,13 @@ class _VerifyCredentialState extends State<VerifyCredential> {
                 documentWidgets.add(
                   ElevatedButton(
                     child: const Text('Verify Document'),
-                    onPressed: () {
-                      var verifierPublicKey = cryptolib.RSAKeyParser()
+                    onPressed: () async {
+                      var issuerPublicKey = cryptolib.RSAKeyParser()
                           .parse(credentialDoc['issuer']['publicKey'])
                       as RSAPublicKey;
                       var signer = cryptolib.Signer(cryptolib.RSASigner(
                           cryptolib.RSASignDigest.SHA256,
-                          publicKey: verifierPublicKey));
+                          publicKey: issuerPublicKey));
                       bool signResult=false;
                       if(QRtype=='full') {
                         signResult = signer.verify64(
@@ -127,15 +137,43 @@ class _VerifyCredentialState extends State<VerifyCredential> {
                       }
 
                       if (signResult) {
-                        CoolAlert.show(
-                          context: context,
-                          animType: CoolAlertAnimType.rotate,
-                          title: "Verified",
-                          type: CoolAlertType.success,
-                          widget: Text(
-                              'Issued by: ' + credentialDoc['issuer']['name']),
-                          //Retrive from Database to check whose public key is it
-                        );
+                        //Checking against the Trusted Third Party
+                        List issuers= await fetchData();
+                        var trustedIssuer=false;
+                        for (var element in issuers) {
+                          print(element['uuid']);
+                          print(credentialDoc['issuer']['uuid']);
+                          if(element['uuid']==credentialDoc['issuer']['uuid']){
+                            trustedIssuer=true;
+                            break;
+                          }
+                        }
+                        if (trustedIssuer) {
+                          CoolAlert.show(
+                            context: context,
+                            animType: CoolAlertAnimType.rotate,
+                            title: "Verified",
+                            type: CoolAlertType.success,
+                            widget: Text(
+                                'Issued by: ' +
+                                    credentialDoc['issuer']['name']),
+                            //Retrive from Database to check whose public key is it
+                          );
+                        }
+                        else{
+                          CoolAlert.show(
+                            context: context,
+                            animType: CoolAlertAnimType.rotate,
+                            title: "Not a trusted issuer",
+                            type: CoolAlertType.warning,
+                            widget: Column(children: [
+                              Text('Issued by: ' + credentialDoc['issuer']['name']),
+                              Text('Website: ' + credentialDoc['issuer']['website'])],),
+                            //Retrive from Database to check whose public key is it
+                          );
+
+                        }
+
                       } else {
                         CoolAlert.show(
                           context: context,
@@ -149,7 +187,6 @@ class _VerifyCredentialState extends State<VerifyCredential> {
                   ),
                 );
                 documentWidgets.add(SizedBox(height: 80));
-
                 setState(() {});
 
             }
@@ -165,12 +202,35 @@ class _VerifyCredentialState extends State<VerifyCredential> {
             }
           });
 
-        } catch (e) {
+        } on FormatException catch (e) {
           print(e);
+          CoolAlert.show(
+            context: context,
+            animType: CoolAlertAnimType.slideInUp,
+            title: "Invalid QR code",
+            type: CoolAlertType.error,
+            text: "Please Scan Valid QR Code",
+          );
           scanBarcode = "Invalid QR for this application";
-          showCamera = false;
-          showWidgets = true;
+          showCamera = true;
+          return;
+
         }
+        catch (e) {
+          print(e);
+          CoolAlert.show(
+            context: context,
+            animType: CoolAlertAnimType.slideInUp,
+            title: "Something went wrong",
+            type: CoolAlertType.error,
+            text: "Please try again",
+          );
+          scanBarcode = "Something went wrong";
+          showCamera = true;
+          return;
+
+        }
+
         print(documentWidgets);
 
         scanBarcode = "";

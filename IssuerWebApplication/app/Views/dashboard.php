@@ -284,7 +284,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
               //Seperating Filesname by -**||**- 
              $files=explode('-**||**-',$request['files']);
              foreach ($files as &$imgname) {
-     echo'<a href="public/uploads/'.$imgname.'"target="_blank"> <img src="public/uploads/' . $imgname . '" class="col-1">';    
+     echo'<a href="public/uploads/'.$imgname.'"target="_blank"> <img src="public/uploads/' . $imgname . '" class="col-2 col-sm-3">';    
 }
              ?></td>
              <form action="<?=base_url()?>/dashboard" method="POST">

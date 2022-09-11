@@ -14,6 +14,8 @@ class _ProfileState extends State<Profile> {
   TextEditingController publicKeyPEMController= TextEditingController();
   TextEditingController privatePEMController= TextEditingController();
   TextEditingController uuidController= TextEditingController();
+  TextEditingController walletAPI= TextEditingController()..text='https://shankarammai.com.np/VerifiableCredentials/api/sendCredential';
+
 
 
   @override
@@ -82,6 +84,15 @@ class _ProfileState extends State<Profile> {
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     label: Text('My UUID'))),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+                readOnly: true,
+                controller: walletAPI,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    label: Text('Wallet API'))),
           ),
         ],)
       ),

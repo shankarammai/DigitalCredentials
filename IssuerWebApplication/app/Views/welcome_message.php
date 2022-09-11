@@ -18,7 +18,7 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="VerifiableCredentials">Home</a>
+          <a class="nav-link active" aria-current="page" href=".">Home</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="dashboard">Dashboard</a>
@@ -38,7 +38,7 @@
 		<div class="col-12 bg-light">
 			<div class="jumbotron">
 			<h1 class="display-4">Verifiable Credentails</h1>
-			<p class="lead">This website is part of verifiable credentails echo system. It tries to imitate the Issuer's software to receive and issue cryptograpically signed credentials. </p>
+			<p class="lead">This web applicaiton is part of a project which focuses on providing digital credentials to the people. </p>
 			<hr class="my-4">
 			<p>Click here to go to the Issuer's Dashboard</p>
 			<p class="lead">
@@ -48,11 +48,6 @@
 		</div>
 	</div>
 
-	<div class="row mt-4 mb-4">	
-		<div class="d-flex align-items-center justify-content-center h-100">
-			<img src="https://www.w3.org/TR/vc-data-model/diagrams/ecosystem.svg" class="col-4" alt="Verifiable Credentails" >
-		</div>
-	</div>
 		
 
 	</div>

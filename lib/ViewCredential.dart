@@ -1,20 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:barcode_widget/barcode_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/material.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:encrypt/encrypt.dart' as cryptolib;
-import "package:pointycastle/export.dart" as pointyCastle;
 import 'package:verifiable_credentials/services/file_read_write.dart';
-import 'package:verifiable_credentials/services/key_generatation.dart';
 import 'package:verifiable_credentials/services/secure_storage.dart';
-import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -49,10 +44,12 @@ class _ViewCredentialState extends State<ViewCredential> {
 
   _ViewCredentialState(this.credentialDocument);
 
+  //getting data from secure storage using a key
   Future<String> _getDataFromStorage(String Key) async {
     return (await secureStorage.readSecureData(Key)).toString();
   }
 
+  //loading data frm secure storage
   Future<List> _load_Details() async {
     await _getDataFromStorage('publicKeyPEM').then((value) {
       publicKeyPEM = value.toString();
@@ -82,6 +79,7 @@ class _ViewCredentialState extends State<ViewCredential> {
   @override
   void initState() {
     super.initState();
+    //get keys and decrypt the credential document
     dynamic _getDetails = _load_Details().whenComplete(() {
       holderPublicKey =
           cryptolib.RSAKeyParser().parse(this.publicKeyPEM) as RSAPublicKey;
@@ -114,6 +112,7 @@ class _ViewCredentialState extends State<ViewCredential> {
       // setState(() {});
     });
   }
+  //save the credential as file
   download_credential(credentialDoc, String credentialDocument,type){
     dynamic downloadDetailsString = jsonEncode(credentialDoc);
     DateTime now = DateTime.now();
@@ -122,6 +121,7 @@ class _ViewCredentialState extends State<ViewCredential> {
     print('Downloaded');
 
   }
+  //show QR for selective disclosure
   _show_selected_qr() async {
     var sendData = credentialDocumentJson;
     //get all the fields then encrypt it
@@ -235,6 +235,7 @@ class _ViewCredentialState extends State<ViewCredential> {
     });
   }
 
+  // show QR for full credential
   _show_full_qr() {
     Map<String, dynamic> sendData = new Map.from(credentialDocumentJson);
     sendData.remove('credentialData');

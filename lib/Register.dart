@@ -1,17 +1,12 @@
-import 'package:cryptography/cryptography.dart';
 import 'package:flutter/material.dart';
 import 'package:pointycastle/asymmetric/api.dart';
-import 'package:pointycastle/ecc/api.dart';
 import 'services/key_generatation.dart';
 import 'dart:io';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'services/file_read_write.dart';
 import 'services/secure_storage.dart';
 import 'package:uuid/uuid.dart';
-import 'package:uuid/uuid_util.dart';
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -26,7 +21,7 @@ class _RegisterState extends State<Register> {
   TextEditingController _controller = new TextEditingController(text: '');
   var privateKeyPEM, publicKeyPEM, UUIDNumber;
   final SecureStorage secureStorage = SecureStorage();
-
+  //Creating credentials folder to save credential documents
   void _create_credentials_folder() async{
     dynamic directory = Platform.isAndroid
         ? await getExternalStorageDirectory()
@@ -36,7 +31,7 @@ class _RegisterState extends State<Register> {
       final Directory _appDocDirNewFolder =
       await _CredentialDirFolder.create(recursive: true);
   }
-
+//saving config into a file
   void _save_config_to_file(
       [String saveLocation = "VerifiableCredentails_config.json"]) {
     var configDetails = {
@@ -48,7 +43,7 @@ class _RegisterState extends State<Register> {
     writeToFile(configDetailsString, saveLocation);
     print('saving file locally done');
   }
-
+  //saving config in secure storage
   void _save_config() {
     print('Saving Configuration');
 
@@ -68,7 +63,7 @@ class _RegisterState extends State<Register> {
           })
         });
   }
-
+  //Generating keys
   Future<List>_generate_keys() async {
     print("Generating keys");
     // Generating Keys
@@ -86,6 +81,7 @@ class _RegisterState extends State<Register> {
     return [publicKeyPEM, privateKeyPEM];
   }
 
+  //Action when generate button is clicked
   void _generate_btn_clicked(){
 
     setState((){
@@ -109,6 +105,7 @@ class _RegisterState extends State<Register> {
 
       }
 
+   //UI to build
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

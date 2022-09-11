@@ -42,7 +42,9 @@ $routes->get('/api/showCredential/(:any)?', 'Home::loadShowCredential/$1/$2');
 $routes->post('/api/saveShowCredential', 'Home::showCredDataSave'); 
 $routes->post('/api/getMyIssuedCredentials', 'Home::getMyIssuedCredentials');
 $routes->post('/api/deleteMyCredential', 'Home::deleteMyCredential');  
-$routes->post('/api/showActivities', 'Home::show_activities');  
+$routes->post('/api/showActivities', 'Home::show_activities');
+$routes->post('/api/verifyDoc', 'Home::verify_Doc');  
+
 
 
 

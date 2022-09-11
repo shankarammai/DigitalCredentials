@@ -42,7 +42,7 @@ class _ChooseIssuerState extends State<ChooseIssuer> {
       final parsed = json.decode(response.body);//.cast<Map<String, dynamic>>();
       return parsed;
     } else {
-      throw Exception('Failed to load album');
+      throw Exception('Failed to load issuers from API');
     }
   }
 

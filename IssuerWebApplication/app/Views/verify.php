@@ -9,7 +9,9 @@
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.2.1/jsencrypt.min.js" integrity="sha512-hI8jEOQLtyzkIiWVygLAcKPradIhgXQUl8I3lk2FUmZ8sZNbSSdHHrWo5mrmsW1Aex+oFZ+UUK7EJTVwyjiFLA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <title>Digital Credentials</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/8.0.20/jsrsasign-all-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.js" integrity="sha512-CX7sDOp7UTAq+i1FYIlf9Uo27x4os+kGeoT7rgwvY+4dmjqV0IuE/Bl5hVsjnQPQiTOhAX1O2r2j5bjsFBvv/A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js" integrity="sha512-95iy0RZIbw3H/FgfAj2wnCQJlzFQ+eaSfUeV/l8WVyGHKSRMzm3M/O+85j9ba/HFphkijrCTDjcuDX0BL2lthA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>    <title>Digital Credentials</title>
   </head>
   <body>
 	<nav class="navbar navbar-dark bg-primary navbar-expand-lg">
@@ -21,7 +23,7 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="VerifiableCredentials">Home</a>
+          <a class="nav-link active" aria-current="page" href=".">Home</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="dashboard">Dashboard</a>
@@ -129,18 +131,32 @@
         };
 
         function verifyDocument(){
-          var verify = new JSEncrypt();
-          verify.setPublicKey(credentialDoc.issuer.publicKey);
+            // $.post("https://shankarammai.com.np/VerifiableCredentials/api/verifyDoc", {credentialDocument: JSON.stringify(credentialDoc)}, function(result){
+            //   if(result.success){
+            //   
+            //}
+            // });
+
+          // var verify = new JSEncrypt();
+          // verify.setPublicKey(credentialDoc.issuer.publicKey);
+
+          var pkey=forge.pki.publicKeyFromPem(credentialDoc.issuer.publicKey);
+          var md = forge.md.sha256.create();
+          md.update(credentialDoc.credentialData.data, 'utf8');
           //check the signature
           if(credentialDoc.credentialData.hasOwnProperty('selectiveFieldsproof')){
 
           }
           else{
-            var verified = verify.verify(credentialDoc.credentialData.data, credentialDoc.proof.proofValue, CryptoJS.SHA256);
+            var signatureDecoded=forge.util.decode64(credentialDoc.proof.proofValue);
+            var verified = pkey.verify(md.digest().bytes(),signatureDecoded );
             console.log(verified);
+            // var verified = verify.verify(credentialDoc.credentialData.data, credentialDoc.proof.proofValue, CryptoJS.SHA256);
+            // console.log(verified);
           }
-          Swal.fire('Signature Matches',`Issued by ${credentialDoc.issuer.name}`,'success');
+           Swal.fire('Signature Matches',`Issued by ${credentialDoc.issuer.name}`,'success');
         }
+
         </script>
 
 
