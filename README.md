@@ -5,8 +5,8 @@ This project was developed using flutter to make it easier to automate the claim
 ### Directories Explained
 ---
 - Example folder
-  - contains example of JSON digital credential file created, QR codes
-- IssuerWebApplicaiton
+  - contains example of JSON digital credential file created, QR codes, APK file if you want to run the app on your android device
+- IssuerWebApplication
   - contains Issuer's web application implemented using codeIgnitor. Acts like issuer's software used for creating digital credentials
 - libs
   - Contains code written to make the applicaiton using flutter. main.dart is the starting point of the application.
